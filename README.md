@@ -6,5 +6,4 @@
 
 1. کلون ریپازیتوری:
 ```bash
-git clone https://github.com/yourusername/viral-kan-system
-cd viral-kan-system
+git clone https://rama-company.github.io/viral-kan-system/
