@@ -1,0 +1,34 @@
+name: Viral Kan Data Pipeline
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # هر 6 ساعت
+  workflow_dispatch:        # اجرای دستی
+
+jobs:
+  data-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+      
+    - name: Run Data Collection
+      run: python scripts/twitter_scraper.py
+      
+    - name: Run AI Prediction
+      run: python scripts/predict.py
+      
+    - name: Update Repository
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@users.noreply.github.com'
+        git add data/* reports/*
+        git commit -m "Automatic data update" || echo "No changes"
+        git push
