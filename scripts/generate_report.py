@@ -1,66 +1,58 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-from fpdf import FPDF
 import os
+import pandas as pd
 from datetime import datetime
 
-DATA_DIR = "../data"
-REPORTS_DIR = "../reports"
-os.makedirs(REPORTS_DIR, exist_ok=True)
+# تنظیم مسیرها
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+REPORT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'reports')
+os.makedirs(REPORT_DIR, exist_ok=True)
 
-def create_report(hashtag="#crypto"):
+def create_report():
+    print("📝 تولید گزارش نهایی...")
+    
     # بارگیری داده‌ها
-    df = pd.read_csv(os.path.join(DATA_DIR, "predictions.csv"))
-    df = df[df['hashtag'] == hashtag]
+    predictions_path = os.path.join(DATA_DIR, "predictions.csv")
     
-    if df.empty:
-        print(f"❌ No data found for {hashtag}")
-        return None
+    if not os.path.exists(predictions_path):
+        print(f"⚠️ فایل {predictions_path} یافت نشد!")
+        return
+        
+    try:
+        df = pd.read_csv(predictions_path)
+        
+        if df.empty:
+            print("⚠️ فایل پیش‌بینی‌ها خالی است!")
+            return
+    except Exception as e:
+        print(f"⚠️ خطا در خواندن فایل: {str(e)}")
+        return
     
-    # تنظیمات گزارش
-    report = FPDF()
-    report.add_page()
-    report.set_font("Arial", 'B', 16)
-    report.cell(0, 10, f"Viral Kan Report: {hashtag}", 0, 1, 'C')
+    # تولید گزارش
+    date_str = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    report_file = os.path.join(REPORT_DIR, f"viral_report_{date_str}.md")
     
-    # اطلاعات کلی
-    report.set_font("Arial", '', 12)
-    report.cell(0, 10, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1)
-    report.cell(0, 10, f"Total Posts Analyzed: {len(df)}", 0, 1)
-    report.ln(10)
+    with open(report_file, 'w', encoding='utf-8') as f:
+        f.write("# گزارش محتواهای ویروسی\n\n")
+        f.write(f"**تاریخ تولید:** {datetime.now().strftime('%Y/%m/%d %H:%M')}\n\n")
+        f.write(f"**تعداد توییت‌ها:** {len(df)}\n\n")
+        
+        # محتواهای برتر بر اساس تعامل
+        if 'engagement' in df.columns:
+            top_content = df.sort_values('engagement', ascending=False).head(10)
+            f.write("## 10 محتوای برتر (بر اساس تعامل)\n\n")
+            for i, row in top_content.iterrows():
+                content = row.get('content', 'بدون محتوا')[:100]
+                hashtag = row.get('hashtag', 'بدون هشتگ')
+                
+                f.write(f"{i+1}. **{content}...**\n")
+                f.write(f"   - هشتگ: {hashtag}\n")
+                f.write(f"   - امتیاز ویروسی: {row.get('prediction', 0.0):.2f}\n")
+                f.write(f"   - تاریخ: {row.get('datetime', 'نامشخص')}\n\n")
+        else:
+            f.write("## محتواهای برتر\n\n")
+            f.write("⚠️ داده‌های تعامل موجود نیست\n\n")
     
-    # نمودار ساعتی
-    hourly = df.groupby('hour')['viral_prob'].mean()
-    plt.figure(figsize=(10, 5))
-    hourly.plot(kind='bar', color='skyblue')
-    plt.title('Average Viral Probability by Hour')
-    plt.xlabel('Hour of Day (UTC)')
-    plt.ylabel('Probability (%)')
-    plt.ylim(0, 100)
-    plt.grid(axis='y', linestyle='--')
-    
-    chart_path = os.path.join(REPORTS_DIR, f"{hashtag}_chart.png")
-    plt.savefig(chart_path, bbox_inches='tight')
-    plt.close()
-    
-    report.cell(0, 10, "Hourly Trend Analysis:", 0, 1)
-    report.image(chart_path, x=10, w=180)
-    report.ln(5)
-    
-    # پست‌های برتر
-    top_posts = df.nlargest(3, 'viral_prob')
-    report.cell(0, 10, "Top Viral Posts:", 0, 1)
-    
-    for i, row in top_posts.iterrows():
-        report.multi_cell(0, 8, f"Post {i+1} ({row['viral_prob']:.1f}% viral):")
-        report.multi_cell(0, 8, f"\"{row['content'][:100]}...\"")
-        report.ln(2)
-    
-    # ذخیره گزارش
-    report_path = os.path.join(REPORTS_DIR, f"{hashtag}_report.pdf")
-    report.output(report_path)
-    print(f"📊 Report saved to {report_path}")
-    return report_path
+    print(f"✅ گزارش در {report_file} ذخیره شد")
 
 if __name__ == "__main__":
     create_report()

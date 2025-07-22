@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/workspaces/viral-kan-system/scripts/twitter_scraper.py", line 1, in <module>
+    import snscrape.modules.twitter as sntwitter
+  File "/workspaces/viral-kan-system/venv/lib/python3.12/site-packages/snscrape/modules/__init__.py", line 17, in <module>
+    _import_modules()
+  File "/workspaces/viral-kan-system/venv/lib/python3.12/site-packages/snscrape/modules/__init__.py", line 13, in _import_modules
+    module = importer.find_module(moduleName).load_module(moduleName)
+             ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FileFinder' object has no attribute 'find_module'
