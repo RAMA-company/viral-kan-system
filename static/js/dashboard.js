@@ -1,5 +1,6 @@
 async function fetchData() {
-    const response = await fetch('https://raw.githubusercontent.com/YOUR_USERNAME/viral-kan-system/main/data/predictions.csv');
+    // اصلاح کنید:
+const response = await fetch('https://rama-company.github.io/viral-kan-system/data/predictions.csv');
     return await response.text();
 }
 
